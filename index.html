@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Todo - med objekter!</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/vuefire/dist/vuefire.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.7.0/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase-firestore.js"></script>
+
+    <div class="container">
+        <div>
+            <h3>Todo-CRUD (med objekter)</h3>
+            CRUD = Create, Read, Update, Delete
+        </div>
+
+        <div>
+            <table class="table" id="mainTable"></table>
+        </div>
+
+        <div>
+
+            <div class="form-horizontal">
+                <div class="control-group form-inline">
+                    <label for="txtDescription" class="control-label col-xs-3">Beskrivelse</label>
+                    <input class="form-control" type="text" id="txtDescription" /><br />
+                    <label for="txtDescription" class="control-label col-xs-3">Dato planlagt</label>
+                    <input class="form-control" type="text" id="txtDatePlanned" /><br />
+                    <button class="btn-primary" onclick="addItem()">Legg til</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyDPGPgi6oAN2sBBUYkxrY-6vOYISFcR3gc",
+            authDomain: "to-do-backend-test.firebaseapp.com",
+            databaseURL: "https://to-do-backend-test.firebaseio.com",
+            projectId: "to-do-backend-test",
+            storageBucket: "to-do-backend-test.appspot.com",
+            messagingSenderId: "728074523583"
+        };
+        firebase.initializeApp(config);
+        var db = firebase.firestore();
+    </script>
+
+    <script type="text/javascript">
+        var isDoneFilter = null;
+        var allItems = [
+            {
+                description: 'Testing todo-list',
+                datePlanned: '18.12',
+            },
+            {
+                description: '',
+                datePlanned: ''
+            },
+        ];
+        var txtDescription = document.getElementById('txtDescription');
+        var txtDatePlanned = document.getElementById('txtDatePlanned');
+        var table = document.getElementById("mainTable");
+        showItems();
+
+        function showItems() {
+            table.innerHTML = `
+                <tr>
+                    <th>Beskrivelse</th>
+                    <th><input ${ isDoneFilter ? 'checked' : ''} type="checkbox" onchange="filterIsDone(this)"/> Er utført</th>
+                    <th>Dato gjort</th>
+                    <th>Dato planlagt</th>
+                    <th></th>
+               </tr>
+               `;
+            for (var i = 0; i < allItems.length; i++) {
+                var rowIsDone = allItems[i].isDone;
+                if (isDoneFilter && !rowIsDone
+                    || isDoneFilter === false && rowIsDone) continue;
+
+                var row = table.insertRow();
+                var cellDescription = row.insertCell();
+                var cellIsDone = row.insertCell();
+                var cellDateDone = row.insertCell();
+                var cellDatePlanned = row.insertCell();
+                var cellDelete = row.insertCell();
+                cellDescription.innerHTML = allItems[i].description;
+                cellDatePlanned.innerHTML = allItems[i].datePlanned;
+                cellDateDone.innerHTML = allItems[i].dateDone || '';
+                var checked = allItems[i].isDone ? 'checked' : '';
+                cellIsDone.innerHTML = `<input ${checked} type="checkbox" onchange="changeIsDone(this,${i})"/>`;
+                cellDelete.innerHTML =
+                    '<td><a href="javascript:deleteItem('
+                    + i + ')">delete</a></td>';
+            }
+        }
+
+        function changeIsDone(inputTag, index) {
+            var isDone = inputTag.checked;
+            allItems[index].isDone = isDone;
+            allItems[index].dateDone = !isDone ? null : new Date().toLocaleDateString('nb-NO');
+            showItems();
+        }
+
+        function addItem() {
+            var newItem = {};
+            newItem.description = txtDescription.value;
+            newItem.datePlanned = txtDatePlanned.value;
+            allItems.push(newItem);
+            showItems();
+        }
+
+        function deleteItem(index) {
+            allItems.splice(index, 1);
+            showItems();
+        }
+
+        function filterIsDone(inputTag) {
+            if (isDoneFilter) {
+                isDoneFilter = false;
+            } else if (isDoneFilter === false) {
+                isDoneFilter = null;
+            } else {
+                isDoneFilter = true;
+            }
+            showItems();
+        }
+
+
+    </script>
+</body>
+</html>
